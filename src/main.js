@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initBrutalistCursor();
   initStickyHeader();
   initMobileMenu();
+  initDragSwiper();
   initMarqueeScrollTrigger();
   initScrollReveals();
   initTiltElements();
@@ -54,9 +55,9 @@ function initBrutalistCursor() {
 
   // Hover states for interactive elements
   const updateHoverStates = () => {
-    const interactiveElements = document.querySelectorAll('a, button, input, textarea, .collage-item, .visual-showcase-container, .polaroid-attachment');
+    const interactiveElements = document.querySelectorAll('a, button, input, textarea, .collage-item, .visual-showcase-container, .polaroid-attachment, .swiper-slide-card');
     interactiveElements.forEach((el) => {
-      // Remove to prevent double binding
+      // Remove to prevent duplicate binding
       el.removeEventListener('mouseenter', addHoverClass);
       el.removeEventListener('mouseleave', removeHoverClass);
       
@@ -130,7 +131,47 @@ function initMobileMenu() {
 }
 
 // ==========================================================================
-// 4. Marquee Speed scroll feedback
+// 4. Drag-to-Scroll Swipe Physics (Desktop + Mobile Drag Support)
+// ==========================================================================
+function initDragSwiper() {
+  const slider = document.querySelector('.swiper-outer-container');
+  if (!slider) return;
+
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+
+  slider.addEventListener('mousedown', (e) => {
+    isDown = true;
+    slider.classList.add('active');
+    startX = e.pageX - slider.offsetLeft;
+    scrollLeft = slider.scrollLeft;
+    slider.style.scrollBehavior = 'auto'; // Temporarily disable smooth snaps for fluid dragging
+  });
+
+  slider.addEventListener('mouseleave', () => {
+    isDown = false;
+    slider.classList.remove('active');
+    slider.style.scrollBehavior = 'smooth';
+  });
+
+  slider.addEventListener('mouseup', () => {
+    isDown = false;
+    slider.classList.remove('active');
+    slider.style.scrollBehavior = 'smooth';
+  });
+
+  slider.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - slider.offsetLeft;
+    const walk = (x - startX) * 1.5; // Drag sensitivity factor multiplier
+    slider.scrollLeft = scrollLeft - walk;
+  });
+}
+
+// ==========================================================================
+// 5. Marquee Speed scroll feedback
 // ==========================================================================
 function initMarqueeScrollTrigger() {
   const marqueeTrack = document.querySelector('.marquee-track');
@@ -159,12 +200,12 @@ function initMarqueeScrollTrigger() {
 }
 
 // ==========================================================================
-// 5. Scroll Reveal Animations (Intersection Observer)
+// 6. Scroll Reveal Animations (Intersection Observer)
 // ==========================================================================
 function initScrollReveals() {
   // Select main layout modules to apply dynamic reveal classes
   const revealTargets = document.querySelectorAll(
-    '.hero-text-block, .hero-portrait-wrapper, .about-halftone-left, .about-card-center, .section-card-wrapper, .brutalist-title-wrapper, .collage-item, .posters-container-card, .contact-card'
+    '.hero-text-block, .hero-portrait-wrapper, .about-halftone-left, .about-card-center, .section-card-wrapper, .brutalist-title-wrapper, .collage-item, .posters-container-card, .contact-card, .swiper-slide-card'
   );
 
   revealTargets.forEach(el => {
@@ -179,18 +220,21 @@ function initScrollReveals() {
       }
     });
   }, {
-    threshold: 0.15,
-    rootMargin: '0px 0px -50px 0px'
+    threshold: 0.1,
+    rootMargin: '0px 0px -40px 0px'
   });
 
   revealTargets.forEach(el => revealObserver.observe(el));
 }
 
 // ==========================================================================
-// 6. Dynamic 3D Tilt Hover Effects
+// 7. Dynamic 3D Tilt Hover Effects
 // ==========================================================================
 function initTiltElements() {
   const tiltElements = document.querySelectorAll('.collage-item, .about-index-card, .polaroid-attachment');
+
+  // Disable mouse tracking tilts on touchscreens to prevent erratic layout shifts
+  if (window.matchMedia('(pointer: coarse)').matches) return;
 
   tiltElements.forEach(el => {
     el.classList.add('tilt-element');
@@ -217,7 +261,7 @@ function initTiltElements() {
 }
 
 // ==========================================================================
-// 7. Contact Form Submissions
+// 8. Contact Form Submissions (Rebranded for Bashar Yousef)
 // ==========================================================================
 function initContactForm() {
   const form = document.getElementById('contact-form');
@@ -239,7 +283,7 @@ function initContactForm() {
     // Simulate server call
     setTimeout(() => {
       status.className = 'form-status success';
-      status.textContent = 'Message successfully transmitted. Ahmad Atharbeh will contact you shortly!';
+      status.textContent = 'Message successfully transmitted. Bashar Yousef will contact you shortly!';
       
       form.reset();
       submitBtn.textContent = originalText;
